@@ -1,0 +1,113 @@
+@mixin btn ($bc,$bch) {
+    cursor: pointer;
+    background-color: $bc;
+    border: 1px solid #b1b1b1;
+    box-shadow: 3px 3px #b1b1b1;
+    border-radius: 20px;
+    user-select:none;
+    outline: none;
+
+    &:hover {
+        background-color: $bch;
+    }
+    &:active {
+        box-shadow: 0px 0px #fff;
+    }
+}
+
+@mixin guide {
+    .guide {
+        position: absolute;
+        top: 90%;
+        left: -3%;
+        border: 1px solid  #b1b1b1;
+        background-color: white;
+        border-radius: 20px;
+        font-size: 20px;
+        white-space:nowrap;
+        text-align: center;
+        padding: 3% 5%;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+        .arrow {
+            font-size: 65px;
+            color: $blue;
+            animation-name: arrow;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+
+            @keyframes arrow {
+                0% {
+                    transform: translateY(20px);
+                }
+                100% {
+                    transform: translateY(0);
+                }
+            }
+        }
+        .btn {
+            @include btn($blue, $green);
+            color: white;
+        }
+        p {
+            font-size: 20px;
+        }
+    }
+}
+
+@mixin pop($i) {
+
+    .#{$i}_pop { //燈箱
+      display: none;
+      width: 100%;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0%;
+      z-index: 9999;
+    }
+  
+    .#{$i}_pop_in { //燈箱內部
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(255, 255, 255, .5);
+      backdrop-filter: blur(2px);
+    }
+  
+    .on {
+      display: block;
+    }
+  }
+  
+  @mixin rwd($breakpoint) {
+    @if $breakpoint=="large" {
+        @media all and (max-width: $screen-lg ) {
+            @content;
+        }
+    }
+    @else if $breakpoint=="medium" {
+        @media all and (max-width: $screen-md ) {
+            @content;
+        }
+    }
+    @else if $breakpoint=="small" {
+        @media all and (max-width: $screen-sm) {
+            @content;
+        }
+    }
+    @else if $breakpoint=="xsmall" {
+        @media all and (max-width: $screen-xs) {
+            @content;
+        }
+    }
+    @else {
+        @media all and (max-width: $breakpoint) {
+            @content;
+        }
+    }
+  }
+  
