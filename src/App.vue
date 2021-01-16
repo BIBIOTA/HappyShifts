@@ -123,7 +123,7 @@ export default {
     }
   },
   mounted() {
-      var CLIENT_ID = '280793763874-immfv9rpbb9l81g28c4paa1dfa912fs0.apps.googleusercontent.com';
+      var CLIENT_ID = '280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com';
       var API_KEY = 'AIzaSyAR30nDKLsSwbZKBXyi4QSCr2PxplRtmug';
 
       var gapi = window.gapi;
