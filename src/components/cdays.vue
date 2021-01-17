@@ -144,4 +144,15 @@ export default {
           background-color: #f9f9f9;
         }
     }
+    @include rwd (large) {
+      tbody tr td {
+        font-size: $large-h3;
+      }
+      .shiftsrow .days, tbody .shiftsrow .shifts {
+        line-height: $large-h2;
+      }
+      tbody .daysrow .shifts p, tbody .shiftsrow .shifts p {
+        line-height: 0;
+      }
+    }
 </style>

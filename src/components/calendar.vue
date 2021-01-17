@@ -422,8 +422,13 @@ export default {
   @include rwd (large) {
     .calendar {
       width: 55%;
-      table thead .weeksrow td {
-        font-size: 20px;
+      table thead {
+        .monthrow td {
+          font-size: $large-h2;
+        }
+        .weeksrow td {
+          font-size: $large-h3;
+        }
       }
     }
   }

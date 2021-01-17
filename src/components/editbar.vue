@@ -176,6 +176,7 @@ export default {
             background-color: $blue;
 
             h2 {
+                margin: 1rem;
                 color: white;
             }
         }
@@ -185,6 +186,7 @@ export default {
             thead {
                 tr {
                     background-color: $blue;
+                    padding: 1.5%;
                     margin-bottom: 0;
                     td {
                         font-size: 30px;
@@ -250,6 +252,7 @@ export default {
             bottom: 5%;
             display: flex;
             justify-content: space-around;
+            background-color: #EBEBEB;
             button {
                 @include btn(white,#f6fafe);
                 padding: 0 7%;
@@ -259,6 +262,17 @@ export default {
     @include rwd (large) {
         .editbar {
             width: 45%;
+            .title h2 {
+                font-size: $large-h2;
+            }
+            table thead tr {
+                td {
+                font-size : $large-h3;
+                }
+            }
+            table tr .shift {
+                font-size: $large-h2;
+            }
         }
     }
 </style>
