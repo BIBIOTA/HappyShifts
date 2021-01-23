@@ -155,4 +155,12 @@ export default {
         line-height: 0;
       }
     }
+    @include rwd (small) {
+      .shiftsrow .days, tbody .shiftsrow .shifts {
+        line-height: 50px;
+      }
+      tbody .daysrow .shifts p, tbody .shiftsrow .shifts p {
+        display: none;
+      }
+    }
 </style>

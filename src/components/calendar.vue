@@ -12,13 +12,8 @@
           </td>
         </tr>
         <tr class="weeksrow">
-          <td class="weeks">星期日</td>
-          <td class="weeks">星期一</td>
-          <td class="weeks">星期二</td>
-          <td class="weeks">星期三</td>
-          <td class="weeks">星期四</td>
-          <td class="weeks">星期五</td>
-          <td class="weeks">星期六</td>
+          <td v-for="(week,index) in weeks" :key="index" class="weeks">{{week}}</td>
+          <td v-for="(week,index) in weeks" :key="index" class="weeksmobile">{{week.slice(2,3)}}</td>
         </tr>
       </thead>
       <tbody>
@@ -41,6 +36,7 @@ export default {
     return {
       year : '',
       month : '',
+      weeks :['星期日','星期一','星期二','星期三','星期四','星期五','星期六'],
       days_count: '',
       days : [[],[],[],[],[],[]],
       shifts : [[],[],[],[],[],[]],
@@ -389,6 +385,9 @@ export default {
           .weeks {
             margin: 0 auto;
           }
+          .weeksmobile {
+            display: none;
+          }
         }
         .monthrow {
           padding: 2%;
@@ -429,6 +428,28 @@ export default {
         .weeksrow td {
           font-size: $large-h3;
         }
+      }
+    }
+  }
+  @include rwd (medium) {
+    .calendar {
+      width: 100%;
+      table {
+        tbody {
+          .guide {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+  @include rwd (small) {
+    .calendar table thead tr {
+      .weeks {
+        display: none;
+      }
+      .weeksmobile {
+        display: block;
       }
     }
   }

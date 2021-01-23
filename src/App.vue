@@ -2,9 +2,11 @@
   <myheader/>
   <main>
     <calendar @event="updateevent" />
-    <editbar :guide="guide" @updateguide="getguidenum" />
+    <editbar :guide="guide" :mobileedit="mobileedit" @updateguide="getguidenum" @updateedit="closeedit" />
   </main>
+  <div class="space" :class="{spaceon: mobileedit}"></div>
   <div class="btn">
+    <button id="mobileshiftbtn" class="button mbtn" @click="manage"><h3>管理班表</h3></button>
     <button disabled class="button buttonupload" v-if="upload"><h3 class="uploading">上傳中...</h3><i class="fas fa-spinner"></i></button>
     <button id="authButton" class="button" v-else-if="upload === false"><h3>新增到Google行事曆</h3></button>
     <button id="addButton" style="display:none" @click="execute"><h3>新增事件</h3></button>
@@ -37,6 +39,7 @@ export default {
       events : [],
       days_count : '',
       upload: false,
+      mobileedit: false,
     }
   },
   components: {
@@ -45,6 +48,12 @@ export default {
     editbar
   },
   methods: {
+    closeedit (val) {
+      this.mobileedit = val;
+    },
+    manage () {
+      this.mobileedit = true;
+    },
     getguidenum(val) {
       this.guide = val;
       this.$bus.$emit('updateguide',val);
@@ -201,6 +210,10 @@ p {
 main {
   display: flex;
 }
+.space {
+  height: 0;
+  transition: height 1s ease;
+}
 .btn {
   margin-top: 25px;
   display: flex;
@@ -212,6 +225,9 @@ main {
     @include btn ($blue,$green);
     color: white;
     padding: 0 7%;
+  }
+  .mbtn {
+    display: none;
   }
   .buttonupload {
     display: flex;
@@ -242,15 +258,8 @@ main {
 }
 @include pop (sucess);
 .card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 50%;
-  background-color: white;
-  border: 3px solid gray;
-  border-radius: 25px;
-  padding: 5%;
+  @include card;
+
   h1 {
     color: $blue;
   }
@@ -272,6 +281,40 @@ main {
     }
     .btn_log {
       @include btn ($blue,$green);
+    }
+  }
+}
+@include rwd (medium) {
+  main {
+    flex-direction: column;
+  }
+  .spaceon {
+    height: 60px;
+  }
+  .btn {
+    .mbtn {
+      display: flex;
+    }
+  }
+  .sucess_pop .sucess_pop_in .card{
+    width: 80%;
+    .button {
+      flex-direction: column;
+      align-items: center;
+      button {
+        margin: 4% auto;
+        width: 80%;
+      }
+    }
+  }
+}
+@include rwd (small) {
+  .btn {
+    flex-wrap: wrap;
+    .button {
+      width: 100%;
+      justify-content: center;
+      margin: 2%;
     }
   }
 }

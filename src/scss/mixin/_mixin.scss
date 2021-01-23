@@ -82,6 +82,19 @@
       display: block;
     }
   }
+
+  @mixin card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    background-color: white;
+    border: 3px solid gray;
+    border-radius: 25px;
+    padding: 5%;  
+  }
   
   @mixin rwd($breakpoint) {
     @if $breakpoint=="large" {

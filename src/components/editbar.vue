@@ -44,10 +44,73 @@
             </tbody>
         </table>
         <div class="add">
-            <button @click="clear">
+            <button @click="clear" class="clear">
                 <h3>清空行事曆</h3>
             </button>
-            <button @click="add">
+            <button @click="add" class="addbtn">
+                <h3>新增班別</h3>
+            </button>
+        </div>
+    </div>
+    <div class="mobileeditbar">
+        <div class="title">
+            <h3>點擊班別到指定的日期</h3>
+        </div>
+        <div class="shiftsbox">
+            <div class="shift" @click="clear">
+                <div class="clear">清空行事曆</div>
+            </div>
+            <div v-for="(shift,index) in shifts" :key="index" class="shift" @click="addcar(shift.name,shift.starttime,shift.endtime)">
+                <div class="shiftname">{{shift.name}}</div>
+                <div class="time">{{shift.starttime}}~{{shift.endtime}}</div>
+            </div>
+        </div>
+        <div class="edit">
+            <div class="editbtn" @click="closeedit">
+                <i class="fas fa-times-circle"></i>
+                <p>關閉</p>
+            </div>
+            <div class="editbtn" @click="opensetting">
+                <i class="fas fa-cog"></i>
+                <p>設定</p>
+            </div>
+        </div>
+    </div>
+    <div class="editbar editmobileshift">
+        <div class="close" @click="closeeditbar">
+            <i class="fas fa-arrow-alt-circle-down"></i>
+        </div>
+        <div class="title">
+            <h2>班別管理</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <td>班別</td>
+                    <td>上班時間</td>
+                    <td>編輯/刪除</td>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+                <tr v-for="(shift,index) in shifts" :key="index">
+                <td class="shift"><input type="text" v-model="shift.name" class="shift shift_text"></td>
+                <td class="times">
+                    <select class="starttime" @change="editshift(index)">
+                        <option v-for="(starttime,index) in timearr" :key="index" :value="starttime" :selected="shift.starttime == starttime">{{starttime}}</option>
+                    </select>
+                    ~
+                    <select class="endtime" @change="editshift(index)">
+                        <option v-for="(endtime,index) in timearr" :key="index" :value="endtime" :selected="shift.endtime == endtime">{{endtime}}</option>
+                    </select>
+                    </td> 
+                <td class="icon" @click.capture="trash(index)">
+                    <i class="fas fa-trash"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="add">
+            <button @click="add" class="addbtn">
                 <h3>新增班別</h3>
             </button>
         </div>
@@ -59,7 +122,7 @@ import * as moment from "moment/moment";
 
 export default {
     name: 'editbar',
-    props : ['guide'],
+    props : ['guide','mobileedit'],
     emit : ['updateguide'],
     data () {
         return {
@@ -68,7 +131,33 @@ export default {
             timearr : [],
         }
     },
+    watch : {
+        mobileedit : function (val) {
+            if (val === true) {
+                document.querySelector('.mobileeditbar').classList.add('transition');
+            }else{
+                document.querySelector('.mobileeditbar').classList.remove('transition');
+            }
+        }
+    },
     methods: {
+        trash(index) {
+           this.shifts.splice(index, 1);
+        },
+        editshift (index) {
+            var vm = this;
+            vm.shifts[index].starttime = document.querySelectorAll('.starttime')[index].value;
+            vm.shifts[index].endtime = document.querySelectorAll('.endtime')[index].value;
+        },
+        closeeditbar () {
+            document.querySelector('.editmobileshift').classList.remove('transition');
+        },
+        opensetting () {
+            document.querySelector('.editmobileshift').classList.add('transition');
+        },
+        closeedit () {
+            this.$emit('updateedit',false);
+        },
         iknow () {
             if (this.$props.guide === 1) {
                 document.querySelector('.guide1').style.display="none";
@@ -84,16 +173,20 @@ export default {
             vm.iknow();
             let arr = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",];
             var shiftname;
-            for (let i = 0; i <= arr.length -1; i++) {
-                let index = vm.shifts.length -1;
-                if (vm.shifts[index].name === arr[i]) {
-                    shiftname = arr[i + 1];
-                    break
-                }else if (arr[i + 1] === 'Z' ) {
-                    shiftname = 'A'
-                    break
-                }else if(vm.shifts[index].name != arr[i]){
-                    shiftname = 'A'
+            if (vm.shifts.length === 0) {
+                shiftname = 'A'
+            }else{
+                for (let i = 0; i <= arr.length -1; i++) {
+                    let index = vm.shifts.length -1;
+                    if (vm.shifts[index].name === arr[i]) {
+                        shiftname = arr[i + 1];
+                        break
+                    }else if (arr[i + 1] === 'Z' ) {
+                        shiftname = 'A'
+                        break
+                    }else if(vm.shifts[index].name != arr[i]){
+                        shiftname = 'A'
+                    }
                 }
             }
             let obj = {name : shiftname, starttime: '00:00', endtime: '12:00'};
@@ -237,6 +330,11 @@ export default {
                         font-size: 30px;
                     }
                 }
+                .icon {
+                    svg:hover {
+                        color: $green;
+                    }
+                }
                 .times, .icon {
                     font-size: 30px;
                     svg {
@@ -248,8 +346,8 @@ export default {
         }
         .add {
             position: absolute;
-            width: 100%;
             bottom: 5%;
+            width: 100%;
             display: flex;
             justify-content: space-around;
             background-color: #EBEBEB;
@@ -258,6 +356,12 @@ export default {
                 padding: 0 7%;
             }
         }
+    }
+    .mobileeditbar {
+        display: none;
+    }
+    .editmobileshift {
+        display: none;
     }
     @include rwd (large) {
         .editbar {
@@ -270,9 +374,161 @@ export default {
                 font-size : $large-h3;
                 }
             }
-            table tr .shift {
-                font-size: $large-h2;
+            table tr {
+                .times, .icon {
+                    font-size: 25px;
+                }
+                .shift {
+                    font-size: $large-h2;
+                }
             }
+        }
+    }
+    @include rwd (medium) {
+        .editbar {
+            position: fixed;
+            z-index: 1;
+            bottom : 0;
+            transform: translateY(100%);
+            width: 100%;
+            height: 100vh;
+            .close {
+                position: absolute;
+                right: 5%;
+                bottom: 5%;
+                cursor: pointer;
+                z-index: 1;
+
+                svg {
+                    font-size: 80px;
+                }
+                &:hover svg {
+                    color: $green;
+                }
+            }
+            table {
+                tbody {
+                    height: 65vh;
+                    overflow-y: auto;
+                }
+                tr {
+                    .times, .icon {
+                        font-size: 30px;
+                    }
+                    .guide {
+                        display: none;
+                    }
+                    .shiftshow {
+                        border: none;
+                        box-shadow: none;
+                        border-radius: 0;
+                    }
+                }
+            }
+            .add {
+                height: 25vh;
+                .clear {
+                    display: none;
+                }
+                .addbtn {
+                    position: absolute;
+                    bottom: 5%;
+                    width: 50%;
+                }
+            }
+        }
+        .mobileeditbar {
+            display: block;
+            width: 100%;
+            position: fixed;
+            background-color: white;
+            bottom: 0;
+            transform: translateY(100%);
+            transition: transform .5s ease;
+            .title {
+                text-align: center;
+                color: white;
+                background-color: $blue;
+                h3 {
+                    margin: 0;
+                }
+            }
+        }
+        .editmobileshift {
+            display: block;
+            transition: transform .5s ease;
+        }
+        .transition {
+            transform: translateY(0);
+        }
+        .shiftsbox {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            background-color: white;
+            padding: 2%;
+            max-height: 170px;
+            overflow-y: auto;
+            .shift {
+                @include btn(white,#f6fafe);
+                width: 15%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin: 1% 2%;
+                padding: 2%;
+
+                & > * {
+                    font-size: 20px;
+                }
+            }
+        }
+        .edit{
+            display: flex;
+            justify-content: space-around;
+
+            .editbtn {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+
+                svg {
+                    font-size: 30px;
+                    color: $blue;
+                }
+
+                &:hover svg {
+                    color: $green;
+                }
+            }
+        }
+    }
+    @include rwd (small) {
+        .shiftsbox .shift {
+            width: 25%;
+        }
+    }
+    @include rwd (xsmall) {
+        .editbar {
+            table tr .times {
+                font-size: 20px;
+                line-height: 40px;
+                select {
+                    font-size: 20px;
+                    height: 40px;
+                }
+            }
+            .add .addbtn {
+                width: 40%;
+                padding: 0;
+            }
+        }
+
+        .shiftsbox .shift {
+            width: 35%;
         }
     }
 </style>
