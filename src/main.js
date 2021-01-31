@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import axios from 'axios'
 import App from './App.vue'
 import store from './store'
 import bus from './bus'
@@ -13,5 +14,5 @@ import moment from "moment"
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
-app.use(store,moment).mount('#app')
+app.use(store,axios,moment).mount('#app')
 
