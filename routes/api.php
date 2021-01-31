@@ -19,4 +19,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/posts', PostController::class . '@apiAll');
+Route::post('/login', PostController::class . '@apiLogin');
+
+Route::post('/checkuser', PostController::class . '@apiCheckuser');
+
+Route::post('/signup', PostController::class . '@apiSignup');
+
+Route::get('/member', PostController::class . '@apiMember');
+
+Route::get('/session', PostController::class . '@apiSession');
+
+Route::delete('/session', PostController::class . '@apiClearSession');
