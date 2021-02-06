@@ -1,1 +1,0 @@
-$ echo web: ./heroku-php-apache2 ./resources/views/ > Procfile
