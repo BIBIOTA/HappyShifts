@@ -30,8 +30,10 @@
 
 <script>
 import cdays from './cdays.vue'
+import axios from 'axios'
 
 export default {
+  props : ["haslogin"],
   data () {
     return {
       year : '',
@@ -219,6 +221,51 @@ export default {
       }
       this.$bus.$emit('nextcar',day);
       this.$emit('event', [this.year,this.month,this.days_count,this.shifts]); 
+    },
+    getevents () {
+      var vm = this;
+      let data = {year : vm.year, month: vm.month};
+      axios.get('/api/getevents',{ params: data })
+      .then( (res)=> {
+        if (res.data != false) {
+          let data = JSON.parse(res.data.data);
+          console.log(data);
+          console.log(document.querySelectorAll('.days').length);
+          console.log(document.querySelectorAll('.days')[1].innerHTML);
+          let box_count = document.querySelectorAll('.days').length;
+          for (let i = 0; i <= box_count -1; i++) {
+            for (let j = 0; j <= data.length -1; j++) {
+              let day = parseInt(data[j].start.dateTime.slice(8,10));
+              if (document.querySelectorAll('.days')[i].innerHTML == day) {
+                vm.nowindex = i;
+                let obj = {
+                  name : data[j].summary,
+                  endtime : data[j].end.dateTime.slice(11,16),
+                  starttime : data[j].start.dateTime.slice(11,16),
+                }
+                console.log(obj);
+                vm.tocar(obj);
+              }
+            }
+          }
+        }else{
+          console.log('no');
+        }
+      })
+      .catch( (res)=> {
+        console.log(res);
+      })
+    },
+    deleteshifts () {
+      var vm = this;
+      let data = {year : vm.year, month: vm.month};
+      axios.get('/api/deleteevents',{ params: data })
+      .then( (res)=> {
+        console.log(res);
+      })
+      .catch( (res)=> {
+        console.log(res);
+      })
     }
   },
   watch : {
@@ -234,7 +281,7 @@ export default {
         let month = date.getMonth();
         vm.month = month + 1;
         // count day
-        vm.days_count = new Date(vm.year, month, 0).getDate();
+        vm.days_count = new Date(vm.year, month + 1, 0).getDate();
     }())
   },
   mounted() {
@@ -270,16 +317,22 @@ export default {
         }
         let lastnum4 = vm.days[3][6] + 1;
         for (let i = 1; i <= 7 ; i++) {
-          vm.days[4].push(lastnum4);
-          lastnum4++
+          if (lastnum4 <= vm.days_count) {
+            vm.days[4].push(lastnum4);
+            lastnum4++
+          }else{
+            vm.days[4].push('');
+          }
         }
         let lastnum5 = vm.days[4][6] + 1;
-        for (let i = 1; i <= 7 ; i++) {
-          if (lastnum5 <= vm.days_count) {
-            vm.days[5].push(lastnum5);
-            lastnum5++
-          }else{
-            vm.days[5].push('');
+        if (lastnum5 != 1) {
+          for (let i = 1; i <= 7 ; i++) {
+            if (lastnum5 <= vm.days_count) {
+              vm.days[5].push(lastnum5);
+              lastnum5++
+            }else{
+              vm.days[5].push('');
+            }
           }
         }
       }
@@ -339,6 +392,9 @@ export default {
           vm.shifts[i][j] = {name: '', starttime : '', endtime : '' ,day: ''};
         }
       }
+      if (this.$props.haslogin === true) {
+        this.deleteshifts();
+      }
     })
 
     this.$bus.$on('updateguide', (val) => {
@@ -346,6 +402,11 @@ export default {
     })
 
   },
+  beforeUpdate () {
+    if (this.$props.haslogin === true) {
+      this.getevents();
+    }
+  }
 }
 </script>
 

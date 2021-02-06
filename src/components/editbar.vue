@@ -13,8 +13,8 @@
             </thead>
             <tbody id="tbody">
                 <tr v-for="(shift,index) in shifts" :key="index">
-                    <div class="guide guide1" v-show="index === 0 && guide === 1">
-                        <span class="arrow">🡅</span>
+                    <div class="guide guide1" v-show="haslogin === false && guide === 1">
+                        <span class="arrow arrow_first">🡅</span>
                         <br />
                         點擊班別，
                         <br />
@@ -52,7 +52,7 @@
             </button>
         </div>
     </div>
-    <div class="mobileeditbar">
+    <div class="mobileeditbar" :class="{transition: mobileedit}">
         <div class="title">
             <h3>點擊班別到指定的日期</h3>
         </div>
@@ -88,12 +88,12 @@
                 <tr>
                     <td>班別</td>
                     <td>上班時間</td>
-                    <td>編輯/刪除</td>
+                    <td>刪除</td>
                 </tr>
             </thead>
             <tbody id="tbody">
                 <tr v-for="(shift,index) in shifts" :key="index">
-                <td class="shift"><input type="text" v-model="shift.name" class="shift shift_text"></td>
+                <td class="shift"><input type="text" v-model="shift.name" class="shift shift_text" @change="updateshiftlist(index)"></td>
                 <td class="times">
                     <select class="starttime" @change="editshift(index)">
                         <option v-for="(starttime,index) in timearr" :key="index" :value="starttime" :selected="shift.starttime == starttime">{{starttime}}</option>
@@ -119,35 +119,39 @@
 
 <script>
 import * as moment from "moment/moment";
+import axios from 'axios'
 
 export default {
     name: 'editbar',
-    props : ['guide','mobileedit'],
+    props : ['guide','mobileedit','haslogin'],
     emit : ['updateguide'],
     data () {
         return {
-            shifts: [{name: 'A', starttime: '00:00', endtime: '12:00'}],
+            shifts: [],
             editname : 'default',
             timearr : [],
         }
     },
     watch : {
-        mobileedit : function (val) {
-            if (val === true) {
-                document.querySelector('.mobileeditbar').classList.add('transition');
+        haslogin : function () {
+            var vm = this;
+            if (vm.haslogin === true) {
+                vm.getshiftlist()
             }else{
-                document.querySelector('.mobileeditbar').classList.remove('transition');
+                vm.shifts = [{name: 'A', starttime: '00:00', endtime: '12:00'}];
             }
         }
     },
     methods: {
         trash(index) {
-           this.shifts.splice(index, 1);
+            this.deleteshiftlist(index);
+            this.shifts.splice(index, 1);
         },
         editshift (index) {
             var vm = this;
             vm.shifts[index].starttime = document.querySelectorAll('.starttime')[index].value;
             vm.shifts[index].endtime = document.querySelectorAll('.endtime')[index].value;
+            vm.updateshiftlist(index);
         },
         closeeditbar () {
             document.querySelector('.editmobileshift').classList.remove('transition');
@@ -191,6 +195,21 @@ export default {
             }
             let obj = {name : shiftname, starttime: '00:00', endtime: '12:00'};
             vm.shifts.push(obj);
+            if (this.haslogin === true) {
+                vm.uploadshifts();
+            }
+        },
+        uploadshifts () {
+            var vm = this;
+            let data = JSON.stringify(vm.shifts);
+            axios.get('/api/uploadshiftlist', { params: data})
+            .then( (res)=> {
+                console.log(res.data.id);
+                vm.shifts[vm.shifts.length -1].id = res.data.id;
+            })
+            .catch( (res)=> {
+                console.log(res);
+            })
         },
         addcar (name,starttime,endtime) {
             let obj = {name: name, starttime : starttime, endtime : endtime, day: ''};
@@ -215,6 +234,9 @@ export default {
                 edit.style.display = "none";
                 vm.editname = index;
             }else if(e.target == trash || e.target == trashpath) {
+                if (this.haslogin === true) {
+                    vm.deleteshiftlist(index);
+                }
                 vm.shifts.splice(index, 1);
             }else if (e.target == check || e.target == checkpath) {
                 vm.shifts[index].starttime = document.getElementById('starttime').value;
@@ -222,7 +244,39 @@ export default {
                 check.style.display = "none";
                 edit.style.display = "block";
                 vm.editname = 'default';
+                if (this.haslogin === true) {
+                    vm.updateshiftlist(index);
+                }
             }
+        },
+        getshiftlist () {
+            axios.get('/api/getshiftlist')
+            .then( (res)=> {
+                console.log(res.data);
+                this.shifts = res.data;
+            })
+            .catch( (res)=> {
+                console.log(res);
+            })
+        },
+        deleteshiftlist (index) {
+            axios.get('/api/deleteshiftlist' , {params: this.shifts[index]})
+            .then( (res)=> {
+                console.log(res);
+            })
+            .catch( (res)=> {
+                console.log(res);
+            })
+        },
+        updateshiftlist (index) {
+            console.log(this.shifts[index]);
+            axios.get('/api/updateshiftlist' , {params: this.shifts[index]})
+            .then( (res)=> {
+                console.log(res);
+            })
+            .catch( (res)=> {
+                console.log(res);
+            })
         }
     },
     mounted() {
@@ -369,6 +423,10 @@ export default {
             .title h2 {
                 font-size: $large-h2;
             }
+            table tbody {
+                height: 400px;
+                overflow-y: auto;
+            }
             table thead tr {
                 td {
                 font-size : $large-h3;
@@ -408,7 +466,7 @@ export default {
             }
             table {
                 tbody {
-                    height: 65vh;
+                    height: 55vh;
                     overflow-y: auto;
                 }
                 tr {
@@ -426,7 +484,7 @@ export default {
                 }
             }
             .add {
-                height: 25vh;
+                height: 20vh;
                 .clear {
                     display: none;
                 }
@@ -524,6 +582,9 @@ export default {
             .add .addbtn {
                 width: 40%;
                 padding: 0;
+            }
+            .close svg {
+                font-size: 65px;
             }
         }
 

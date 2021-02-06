@@ -41,7 +41,10 @@
           <input type="password" name="username_pwd" class="input" v-model="input_login.password" :placeholder="lg_guide.pwd" />
         </span>
         <div class="button">
-          <button class="btn_log" @click="login">登入</button>
+          <button class="btn_log google" @click="googlelogin('login')" v-if="isgooglelogin">Login <br class="mb_br" /> with  Google</button>
+          <button disabled class="btn_log btn_gray" v-else-if="isgooglelogin=== false">登入中<i class="fas fa-spinner"></i></button>
+          <button class="btn_log" @click="login" v-if="islogin">登入</button>
+          <button disabled class="btn_log btn_gray" v-else-if="islogin=== false">登入中<i class="fas fa-spinner"></i></button>
         </div>
       </div>
 
@@ -60,7 +63,10 @@
           <input type="password" name="signup_repass" class="input" v-model="input_signup.repassword" :placeholder="su_guide.repwd" @click="clearerror" />
         </span>
         <div class="button">
-          <button class="btn_log" @click="signup">送出</button>
+          <button class="btn_log google" @click="googlelogin('signup')" v-if="isgooglesignup">Sign up <br class="mb_br" /> with Google</button>
+          <button disabled class="btn_log btn_gray" v-else-if="isgooglesignup === false">註冊中<i class="fas fa-spinner"></i></button>
+          <button class="btn_log" @click="signup" v-if="issignup">送出</button>
+          <button disabled class="btn_log btn_gray" v-else-if="issignup === false">註冊中<i class="fas fa-spinner"></i></button>
         </div>
     </div>
 
@@ -74,17 +80,20 @@ var CryptoJS = require("crypto-js")
 
 export default {
   name: 'myheader',
+  props:['googleAPI',"haslogin" ,"username"],
   data () {
     return {
-      haslogin: '',
-      username: null,
       usernamehasaccount: false,
       pop: false,
       pop_card: null,
       lg_guide: {user: '', pwd: ''},
       su_guide: {user: "請輸入英文和數字，至少5個字元", pwd: "請輸入至少8個字元，包含大小寫" ,repwd: ''},
       input_login : {username: '', password: '',hide: ''},
-      input_signup : {id:null,username:'',password:'',repassword:'',hide: ''}
+      input_signup : {id:null,username:'',password:'',repassword:'',hide: ''},
+      isgooglelogin: true,
+      islogin: true,
+      isgooglesignup : true,
+      issignup: true,
     }
   },
   methods: {
@@ -97,20 +106,91 @@ export default {
     },
     login () {
       var vm = this;
+      vm.islogin = false;
       document.querySelector('.signup_pass').classList.remove('error');
       vm.input_login.hide = CryptoJS.MD5(vm.input_login.password).toString();
       axios.post('/api/login', this.input_login)
       .then( (res)=> {
         console.log(res.data);
-        if (res.data.length === 1) {
+        if (res.data != false) {
           window.location.reload()
         }else{
           document.querySelector('.signup_pass').classList.add('error');
+          vm.islogin = true;
         }
       })
       .catch( (res)=> {
         console.log(res);
       })
+    },
+    googlelogin (val) {
+      var vm = this;
+      var CLIENT_ID = vm.googleAPI.CLIENT_ID;
+      var API_KEY = vm.googleAPI.API_KEY;
+
+      var gapi = window.gapi;
+      
+      var authParams = {
+        'response_type':'token',
+        'client_id':CLIENT_ID,
+        'immediate':false,
+        'scope': ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+      };
+
+      //init
+      gapi.load("client:auth2",function() {
+        gapi.auth2.init({client_id: CLIENT_ID});
+      });
+
+      gapi.auth.authorize(authParams, myCallback);
+          //登入結果,設定token
+      function myCallback(authResult){
+        if (authResult && authResult['access_token']) {
+          gapi.auth.setToken(authResult);
+            console.log(authResult)
+            if (val === 'login') {
+              vm.isgooglelogin = false;
+            }else{
+              vm.isgooglesignup = false;
+            }
+            loadClient();
+        }else{
+          // Authorization failed or user declined
+        }
+      }
+
+      //連API
+      function loadClient() {
+        gapi.client.setApiKey(API_KEY);
+        return gapi.client.load("https://www.googleapis.com/discovery/v1/apis/people/v1/rest")
+        .then( function () { 
+          console.log("GAPI client loaded for API"); 
+          getuseremail();
+        },
+        function(err) { console.error("Error loading GAPI client for API", err); });
+      }
+
+      function getuseremail () {
+        gapi.client.people.people.get({
+            'resourceName': 'people/me',
+            //通常你會想要知道的用戶個資↓
+            'personFields': 'names,phoneNumbers,emailAddresses,addresses,residences,genders,birthdays,occupations',
+        }).then(function (res) {
+            let email = {username: res.result.emailAddresses[0].value};
+            axios.post('/api/googlelogin', email)
+            .then( (res)=> {
+              console.log(res);
+              if (res.data === 1 ){
+                window.location.reload()
+              }
+            })
+            .catch( (res)=> {
+              console.log(res);
+              alert('登入錯誤 !');
+            })
+        });
+
+      }
     },
     checkuser(val) {
       var vm = this;
@@ -157,6 +237,7 @@ export default {
         }
       }
       if (usercheck () === true & pwdcheck () === true & repwdcheck () === true && vm.usernamehasaccount === false) {
+        vm.issignup = false;
         console.log('sucsess');
         vm.input_signup.hide = CryptoJS.MD5(vm.input_signup.password).toString();
         axios.post('/api/signup', vm.input_signup)
@@ -175,21 +256,6 @@ export default {
           this.su_guide.repwd = '';
       }
     },
-    getsession () {
-      var vm = this;
-      axios.get('/api/session')
-      .then( (res)=> {
-        if (res.data.id !== null) {
-          vm.haslogin = true;
-          vm.username = res.data.user;
-        }else{
-          vm.haslogin = false;
-        }
-      })
-      .catch( (res)=> {
-        console.log(res);
-      })
-    },
     logout () {
       axios.delete('/api/session')
       .then( (res)=> {
@@ -201,8 +267,19 @@ export default {
       })
     }
   },
-  created() {
-    this.getsession();
+  mounted () {
+
+    this.$bus.$on('openlogin', (val) => {
+      this.pop = val.pop;
+      this.pop_card = val.pop_card;
+    })
+
+    this.$bus.$on('opensignup', (val) => {
+      this.pop = val.pop;
+      this.pop_card = val.pop_card;
+    })
+
+
   },
 }
 </script>
@@ -285,6 +362,7 @@ export default {
   .member_pop {
     .card {
       @include card;
+      width: 90%;
 
       .fa-times-circle {
         position: absolute;
@@ -392,14 +470,64 @@ export default {
       }
 
       .button {
+        align-items: center;
         margin: 3%;
+          button {
+            width: 35%;
+            font-size: 20px;
+          }
+         .google {
+           background-color: #D6492F;
+           justify-content: flex-end;
+           position:relative;
+
+           .mb_br {
+             display: none;
+           }
+
+           &::before {
+              content: '';
+              background-image: url('../assets/google.png');
+              width: 50px;
+              height: 50px;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              background-color: white;
+              background-repeat: no-repeat;
+              background-position: center;
+              background-size: cover;
+              transform: translate(0, -50%);
+              border-radius: 100%;
+            }
+         }
+         .btn_gray {
+           background-color: gray;
+           @include loading;
+         }
       }
     }
   }
   @include rwd (large) {
+    header {
+      .title {
+        h1 {
+          font-size: 40px;
+        }
+      }
+      nav .user h2 {
+        font-size: 30px;
+        padding: 0% 2%;
+      }
+    }    
     .member_pop .card {
-      width: 75%;
+      padding: 0;
+      height: 95vh;
+      span {
+        margin: 20px;
+      }
     }
+
   }
   @include rwd (medium) {
     header {
@@ -408,6 +536,9 @@ export default {
           font-size: 30px;
         }
       }
+      nav .user {
+        display: none;
+      }
     }
     .member_pop .card span.error.signup_user::after {
       top: 100%;
@@ -415,15 +546,51 @@ export default {
       font-size: 20px;
       transform: translate(0%, 0%);
     }
+    .member_pop .card .button {
+      
+      button {
+        width : 40%;
+      }
+      .google{
+        &::before {
+          width: 40px;
+          height: 40px;
+          left : 3%;
+        }
+      }
+    }
   }
   @include rwd (small) {
     header {
+      nav .memberbtn h2 {
+        width: 110px;
+      }
       .title {
         h1 {
           line-height: 5px;
         }
       }
     }
+    .member_pop .card {
+      overflow-y: auto;
+      .button { 
+        button {
+          height : 75px;
+        }
+        .google {
+          text-align: left;
+          padding-left: 10%;
+          &::before {
+            width: 30px;
+            height: 30px;
+            left: 4%;
+          }
+          .mb_br {
+            display: block;
+          }
+        }
+      }
+    } 
   }
   @include rwd (xsmall) {
     header {
@@ -439,6 +606,12 @@ export default {
     }
     .member_pop .card {
       width: 80%;
+      .button .google {
+        padding-left: 5%;
+        &::before {
+          display: none;
+        }
+      }
       span .input::-webkit-input-placeholder {
         font-size: 12px;
       }

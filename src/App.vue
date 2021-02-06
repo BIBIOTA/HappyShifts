@@ -1,24 +1,25 @@
 <template>
-  <myheader/>
+  <myheader :googleAPI="googleAPI" :haslogin="haslogin" :username="username" />
   <main>
-    <calendar @event="updateevent" />
-    <editbar :guide="guide" :mobileedit="mobileedit" @updateguide="getguidenum" @updateedit="closeedit" />
+    <calendar @event="updateevent" :haslogin="haslogin" />
+    <editbar @updateguide="getguidenum" @updateedit="closeedit" :haslogin="haslogin" :guide="guide" :mobileedit="mobileedit" />
   </main>
   <div class="space" :class="{spaceon: mobileedit}"></div>
   <div class="btn">
     <button id="mobileshiftbtn" class="button mbtn" @click="manage"><h3>管理班表</h3></button>
-    <button disabled class="button buttonupload" v-if="upload"><h3 class="uploading">上傳中...</h3><i class="fas fa-spinner"></i></button>
+    <button disabled class="button buttonupload" v-if="upload === true"><h3 class="uploading">上傳中...</h3><i class="fas fa-spinner"></i></button>
     <button id="authButton" class="button" v-else-if="upload === false"><h3>新增到Google行事曆</h3></button>
-    <button id="addButton" style="display:none" @click="execute"><h3>新增事件</h3></button>
+    <button id="addButton" class="button" @click="execute" v-show="upload === 3"><h3>新增到Google行事曆</h3></button>
   </div>
   <div class="sucess_pop" id="sucess_pop">
     <div class="sucess_pop_in">
       <div class="card">
         <h1>上傳完成 !</h1>
-        <h2>登入帳號，可以紀錄班表跟班別哦 !</h2>
+        <h2 v-show="haslogin === false">登入帳號，可以紀錄班表跟班別哦 !</h2>
         <div class="button">
-          <button class="btn_sign">還沒有帳號，先註冊</button>
-          <button class="btn_log">登入</button>
+          <button class="btn_sign" v-show="haslogin === false" @click="opensignup">還沒有帳號，先註冊</button>
+          <button class="btn_log" v-show="haslogin === false" @click="openlogin">登入</button>
+          <button class="btn_log" v-show="haslogin" @click="close">關閉視窗</button>
         </div>
       </div>
     </div>
@@ -30,22 +31,37 @@ import myheader from './components/header.vue'
 import calendar from './components/calendar.vue'
 import editbar from './components/editbar.vue'
 
+import axios from 'axios'
 
 export default {
   name: 'App',
   data () {
     return {
+      haslogin: '',
+      username: null,
       guide : 1,
       events : [],
       days_count : '',
       upload: false,
+      googlelogin: false,
       mobileedit: false,
+      googleAPI:{
+        CLIENT_ID: '280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com',
+        API_KEY:
+        'AIzaSyAR30nDKLsSwbZKBXyi4QSCr2PxplRtmug'
+      },
+      authParams: {
+        'response_type':'token',
+        'client_id':'280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com',
+        'immediate':false,
+        'scope': [ "https://www.googleapis.com/auth/userinfo.email" ]
+      },
     }
-  },
+  },  
   components: {
     myheader,
     calendar,
-    editbar
+    editbar,
   },
   methods: {
     closeedit (val) {
@@ -85,13 +101,14 @@ export default {
             let enddaystr;
             if (starttime > endtime) {
               enday = shifts[j][k].day + 1;
-              if (enday.toString().length == 1) {
-                enddaystr = '0' + enday;
-              }else{
-                enddaystr = enday;
-              }
+
             }else{
-              enddaystr = shifts[j][k].day;
+              enday = shifts[j][k].day;
+            }
+            if (enday.toString().length == 1) {
+              enddaystr = '0' + enday;
+            }else{
+              enddaystr = enday;
             }
             let obj = {
               'summary': shifts[j][k].name, 
@@ -110,6 +127,7 @@ export default {
     },
     execute () {
       if (this.events.length != 0) {
+        document.getElementById('addButton').style.display = "none";
         this.upload = true;
         var gapi = window.gapi;
         //多筆事件
@@ -122,43 +140,88 @@ export default {
         })
 
         batch.then( ()=> {
-          this.upload = false;
           document.getElementById('sucess_pop').classList.add('on');
           console.log('all jobs now dynamically done!!!')
+          this.upload = 3;
         });
       }else{
         alert('行事曆沒有資料!')
       } 
+    },
+    eventsToBackend() {
+      let year = this.events[0].start.dateTime.split("-")[0];
+      let month = this.events[0].start.dateTime.split("-")[1];
+
+      let data = {year: year, month: month , events : JSON.stringify(this.events)};
+
+      axios.get('/api/events', { params: data })
+        .then( (res)=> {
+          console.log(res);
+        })
+        .catch( (res)=> {
+          console.log(res);
+        })
+    },
+    getsession () {
+      var vm = this;
+      axios.get('/api/session')
+      .then( (res)=> {
+        if (res.data.id !== null) {
+          vm.haslogin = true;
+          vm.username = res.data.user;
+        }else{
+          vm.haslogin = false;
+        }
+      })
+      .catch( (res)=> {
+        console.log(res);
+      })
+    },
+    close () {
+      document.getElementById('sucess_pop').classList.remove('on');
+    },
+    opensignup () {
+      let obj = {pop: true,pop_card: "signup"}
+      this.$bus.$emit('opensignup', obj);
+      document.getElementById('sucess_pop').classList.remove('on');
+    },
+    openlogin () {
+      let obj = {pop: true,pop_card: "login"}
+      this.$bus.$emit('openlogin', obj);
+      document.getElementById('sucess_pop').classList.remove('on');
+    },
+  },
+  watch : {
+    events: function () {
+      if (this.haslogin === true) {
+        this.eventsToBackend();
+      }
     }
   },
+  created () {
+    this.getsession();
+  },
   mounted() {
-      var CLIENT_ID = '280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com';
-      var API_KEY = 'AIzaSyAR30nDKLsSwbZKBXyi4QSCr2PxplRtmug';
+
+      var CLIENT_ID = this.googleAPI.CLIENT_ID;
+      var API_KEY = this.googleAPI.API_KEY;
 
       var gapi = window.gapi;
-      
-      var authParams = {
-        'response_type':'token',
-        'client_id':CLIENT_ID,
-        'immediate':false,
-        'scope':['https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events']
-      };
 
       //init
-      gapi.load("client:auth2",function() {
+      gapi.load("client:auth2",()=> {
         gapi.auth2.init({client_id: CLIENT_ID});
       });
 
     //登入btn
-		document.getElementById('authButton').onclick = function(){
-      gapi.auth.authorize(authParams, myCallback)
+		document.getElementById('authButton').onclick = ()=> {
+      gapi.auth.authorize(this.authParams, myCallback)
     };
     
     //登入結果,設定token
 		function myCallback(authResult){
       if (authResult && authResult['access_token']) {
         gapi.auth.setToken(authResult);
-          console.log(authResult)
           loadClient();
       }else{
         // Authorization failed or user declined
@@ -238,22 +301,7 @@ main {
     .uploading {
       padding-right: 15px;
     }
-    svg {
-      animation-name: loading;
-      animation-duration: 1s;
-      animation-iteration-count: infinite;
-      font-size: 30px;
-
-      @keyframes loading {
-        0% {
-          transform: rotate(0);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-    }
-
+    @include loading;
   }
 }
 @include pop (sucess);

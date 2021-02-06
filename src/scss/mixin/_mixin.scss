@@ -19,7 +19,8 @@
     .guide {
         position: absolute;
         top: 90%;
-        left: -3%;
+        left: 50%;
+        transform: translateX(-50%);
         border: 1px solid  #b1b1b1;
         background-color: white;
         border-radius: 20px;
@@ -43,6 +44,19 @@
                 }
                 100% {
                     transform: translateY(0);
+                }
+            }
+        }
+        .arrow_first {
+            animation-name: arrow_first;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            @keyframes arrow_first {
+                0% {
+                    transform: translate(20px,20px) rotate(-55deg);
+                }
+                100% {
+                    transform: translate(0px,0px) rotate(-55deg);
                 }
             }
         }
@@ -94,6 +108,24 @@
     border: 3px solid gray;
     border-radius: 25px;
     padding: 5%;  
+  }
+
+  @mixin loading {
+    svg {
+        animation-name: loading;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        font-size: 30px;
+  
+        @keyframes loading {
+          0% {
+            transform: rotate(0);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+    }  
   }
   
   @mixin rwd($breakpoint) {
