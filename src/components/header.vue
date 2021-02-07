@@ -181,7 +181,10 @@ export default {
             .then( (res)=> {
               console.log(res);
               if (res.data === 1 ){
-                window.location.reload()
+                if (vm.isgooglesignup === false && vm.$parent.events.length !== 0) {
+                  vm.$parent.eventsToBackend();
+                }
+                window.setTimeout(window.location.reload(), 1000);
               }
             })
             .catch( (res)=> {
@@ -243,7 +246,10 @@ export default {
         axios.post('/api/signup', vm.input_signup)
         .then( (res)=> {
           console.log(res);
-          window.location.reload();
+          if (vm.$parent.events.length !== 0) {
+            this.$parent.eventsToBackend();
+          }
+          window.setTimeout(window.location.reload(), 1000);
         })
         .catch( (res)=> {
           console.log(res);
@@ -278,7 +284,6 @@ export default {
       this.pop = val.pop;
       this.pop_card = val.pop_card;
     })
-
 
   },
 }

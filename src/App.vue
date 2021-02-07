@@ -46,15 +46,15 @@ export default {
       googlelogin: false,
       mobileedit: false,
       googleAPI:{
-        CLIENT_ID: '280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com',
+        CLIENT_ID: '280793763874-hm3kggc61gqs775vo6sklk8mihqoj28b.apps.googleusercontent.com',
         API_KEY:
         'AIzaSyAR30nDKLsSwbZKBXyi4QSCr2PxplRtmug'
       },
       authParams: {
         'response_type':'token',
-        'client_id':'280793763874-6c564i5fe0g5bak4n3duhppdtutbjivb.apps.googleusercontent.com',
+        'client_id':'280793763874-hm3kggc61gqs775vo6sklk8mihqoj28b.apps.googleusercontent.com',
         'immediate':false,
-        'scope': [ "https://www.googleapis.com/auth/userinfo.email" ]
+        'scope': ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/userinfo.email" ]
       },
     }
   },  
@@ -139,7 +139,8 @@ export default {
           }))
         })
 
-        batch.then( ()=> {
+        batch.then( (res)=> {
+          console.log(res);
           document.getElementById('sucess_pop').classList.add('on');
           console.log('all jobs now dynamically done!!!')
           this.upload = 3;

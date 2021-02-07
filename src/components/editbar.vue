@@ -253,7 +253,11 @@ export default {
             axios.get('/api/getshiftlist')
             .then( (res)=> {
                 console.log(res.data);
-                this.shifts = res.data;
+                if (res.data.length === 0) {
+                    this.shifts = [{name: 'A', starttime: '00:00', endtime: '12:00'}];
+                }else{
+                    this.shifts = res.data;
+                }
             })
             .catch( (res)=> {
                 console.log(res);
