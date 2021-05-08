@@ -31,7 +31,7 @@ import myheader from './components/header.vue'
 import calendar from './components/calendar.vue'
 import editbar from './components/editbar.vue'
 
-import axios from 'axios'
+export const API_URL = process.env.VUE_APP_API_URL;
 
 export default {
   name: 'App',
@@ -155,7 +155,7 @@ export default {
 
       let data = {year: year, month: month , events : JSON.stringify(this.events)};
 
-      axios.get('/api/events', { params: data })
+      this.$axios.get(API_URL+'/api/events', { params: data })
         .then( (res)=> {
           console.log(res);
         })
@@ -165,7 +165,7 @@ export default {
     },
     getsession () {
       var vm = this;
-      axios.get('/api/session')
+      this.$axios.get(API_URL+'/api/session')
       .then( (res)=> {
         if (res.data.id !== null) {
           vm.haslogin = true;

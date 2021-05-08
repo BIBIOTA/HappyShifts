@@ -119,7 +119,7 @@
 
 <script>
 import * as moment from "moment/moment";
-import axios from 'axios'
+export const API_URL = process.env.VUE_APP_API_URL;
 
 export default {
     name: 'editbar',
@@ -202,7 +202,7 @@ export default {
         uploadshifts () {
             var vm = this;
             let data = JSON.stringify(vm.shifts);
-            axios.get('/api/uploadshiftlist', { params: data})
+            this.$axios.get(API_URL+'/api/uploadshiftlist', { params: data})
             .then( (res)=> {
                 console.log(res.data.id);
                 vm.shifts[vm.shifts.length -1].id = res.data.id;
@@ -250,7 +250,7 @@ export default {
             }
         },
         getshiftlist () {
-            axios.get('/api/getshiftlist')
+            this.$axios.get(API_URL+'/api/getshiftlist')
             .then( (res)=> {
                 console.log(res.data);
                 if (res.data.length === 0) {
@@ -264,7 +264,7 @@ export default {
             })
         },
         deleteshiftlist (index) {
-            axios.get('/api/deleteshiftlist' , {params: this.shifts[index]})
+            this.$axios.get(API_URL+'/api/deleteshiftlist' , {params: this.shifts[index]})
             .then( (res)=> {
                 console.log(res);
             })
@@ -274,7 +274,7 @@ export default {
         },
         updateshiftlist (index) {
             console.log(this.shifts[index]);
-            axios.get('/api/updateshiftlist' , {params: this.shifts[index]})
+            this.$axios.get(API_URL+'/api/updateshiftlist' , {params: this.shifts[index]})
             .then( (res)=> {
                 console.log(res);
             })

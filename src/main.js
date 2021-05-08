@@ -5,6 +5,7 @@ import store from './store'
 import bus from './bus'
 
 const app = createApp(App)
+app.config.globalProperties.$axios = axios;
 app.config.globalProperties.$bus = bus
 
 app.config.devtools = true
@@ -18,4 +19,3 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
 
 app.use(store,axios,moment).mount('#app')
-

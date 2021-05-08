@@ -30,7 +30,7 @@
 
 <script>
 import cdays from './cdays.vue'
-import axios from 'axios'
+export const API_URL = process.env.VUE_APP_API_URL;
 
 export default {
   props : ["haslogin"],
@@ -225,7 +225,7 @@ export default {
     getevents () {
       var vm = this;
       let data = {year : vm.year, month: vm.month};
-      axios.get('/api/getevents',{ params: data })
+      this.$axios.get(API_URL+'/api/getevents',{ params: data })
       .then( (res)=> {
         if (res.data != false) {
           let data = JSON.parse(res.data.data);
@@ -259,7 +259,7 @@ export default {
     deleteshifts () {
       var vm = this;
       let data = {year : vm.year, month: vm.month};
-      axios.get('/api/deleteevents',{ params: data })
+      this.$axios.get(API_URL+'/api/deleteevents',{ params: data })
       .then( (res)=> {
         console.log(res);
       })
@@ -285,101 +285,8 @@ export default {
     }())
   },
   mounted() {
-    var vm = this;
-    (function () {
-      // push calendar day
-      let date = new Date; // get current date
-      let firstday = new Date(date.setDate(1)).toUTCString();
-      let dayofweek = firstday.split(",")[0];
 
-      // array for loop function
-      function Dayprocess () {
-        for (let i = 1; i <= 7 ; i++) {
-            vm.days[0].push(i);    
-            if (vm.days[0].length == 7) {
-              break;
-            }                
-        } 
-        let lastnum = vm.days[0][6] + 1;
-        for (let i = 1; i <= 7 ; i++) {
-          vm.days[1].push(lastnum);
-          lastnum++
-        }
-        let lastnum2 = vm.days[1][6] + 1;
-        for (let i = 1; i <= 7 ; i++) {
-          vm.days[2].push(lastnum2);
-          lastnum2++
-        }
-        let lastnum3 = vm.days[2][6] + 1;
-        for (let i = 1; i <= 7 ; i++) {
-          vm.days[3].push(lastnum3);
-          lastnum3++
-        }
-        let lastnum4 = vm.days[3][6] + 1;
-        for (let i = 1; i <= 7 ; i++) {
-          if (lastnum4 <= vm.days_count) {
-            vm.days[4].push(lastnum4);
-            lastnum4++
-          }else{
-            vm.days[4].push('');
-          }
-        }
-        let lastnum5 = vm.days[4][6] + 1;
-        if (lastnum5 != 1) {
-          for (let i = 1; i <= 7 ; i++) {
-            if (lastnum5 <= vm.days_count) {
-              vm.days[5].push(lastnum5);
-              lastnum5++
-            }else{
-              vm.days[5].push('');
-            }
-          }
-        }
-      }
-
-      if (dayofweek == 'Sun') {
-        Dayprocess ();
-      }else if (dayofweek === 'Mon') {
-        vm.days[0].push('');
-        Dayprocess ();
-      }else if (dayofweek === 'Tue') {
-        vm.days[0].push('','');
-        Dayprocess ();
-      }else if (dayofweek === 'Wed') {
-        vm.days[0].push('','','');
-        Dayprocess ();
-      }else if (dayofweek === 'Thu') {
-          vm.days[0].push('','','','');
-          Dayprocess ();
-      }else if (dayofweek === 'Fri') {
-          vm.days[0].push('','','','','');
-          Dayprocess ();
-      }else if (dayofweek === 'Sat') {
-        for (let i = 1; i <= 7 ; i++) {
-          vm.days[0].push(i);
-          Dayprocess ();
-        }        
-      }
-
-      // make shift arr
-      let obj = {name: '', starttime : '', endtime : '', day: ''};
-      for (let i = 0 ; i <= vm.days.length -1; i++) {
-        for(let j = 1 ; j <= vm.days[i].length; j++) {
-          vm.shifts[i].push(obj);
-        }
-      }
-
-      // checkrow
-      function row(num) {
-        if (vm.days[num][0] === '' && vm.days[num][6] === '') {
-        vm.days.splice(num , 1);
-        vm.shifts.splice(num , 1);
-        }
-      }
-      row(0);
-      row(5);
-
-    } ())
+    this.updatecar();
 
     this.$bus.$on('shift', (obj) => {
       this.tocar(obj);
