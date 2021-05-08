@@ -284,7 +284,7 @@ export default {
         vm.days_count = new Date(vm.year, month + 1, 0).getDate();
     }())
   },
-  mounted() {
+  mounted() {    
 
     this.updatecar();
 

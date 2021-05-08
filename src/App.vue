@@ -163,20 +163,15 @@ export default {
           console.log(res);
         })
     },
-    getsession () {
+    getCookies () {
       var vm = this;
-      this.$axios.get(API_URL+'/api/session')
-      .then( (res)=> {
-        if (res.data.id !== null) {
-          vm.haslogin = true;
-          vm.username = res.data.user;
-        }else{
-          vm.haslogin = false;
-        }
-      })
-      .catch( (res)=> {
-        console.log(res);
-      })
+      const token = this.$Cookies.get('api_token');
+      if (token) {
+        vm.haslogin = true;
+        vm.username = this.$Cookies.get('user');
+      }else{
+        vm.haslogin = false;
+      }
     },
     close () {
       document.getElementById('sucess_pop').classList.remove('on');
@@ -200,7 +195,7 @@ export default {
     }
   },
   created () {
-    this.getsession();
+    this.getCookies();
   },
   mounted() {
 

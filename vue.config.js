@@ -1,7 +1,7 @@
 module.exports = {
   // 在專案開發中如果呼叫 API 時會 pass 給這個 proxy 網址
   // devServer: {
-  //   proxy: 'http://happyshifts.test'
+  //   proxy: 'http://localhost:84'
   // },
 
   // 建置前端靜態檔案時要擺放的目錄

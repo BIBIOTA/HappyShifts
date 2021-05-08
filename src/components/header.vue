@@ -109,7 +109,7 @@ export default {
       vm.islogin = false;
       document.querySelector('.signup_pass').classList.remove('error');
       vm.input_login.hide = CryptoJS.MD5(vm.input_login.password).toString();
-      vm.$axios.get(API_URL+'/api/login', this.input_login)
+      vm.$axios.post(API_URL+'/api/login', this.input_login)
       .then( (res)=> {
         console.log(res.data);
         if (res.data != false) {
@@ -177,7 +177,7 @@ export default {
             'personFields': 'names,phoneNumbers,emailAddresses,addresses,residences,genders,birthdays,occupations',
         }).then(function (res) {
             let email = {username: res.result.emailAddresses[0].value};
-            vm.$axios.get(API_URL+'/api/googlelogin', email)
+            vm.$axios.post(API_URL+'/api/googlelogin', email)
             .then( (res)=> {
               console.log(res);
               if (res.data === 1 ){
@@ -199,7 +199,7 @@ export default {
       var vm = this;
       vm.usernamehasaccount = false;
       document.querySelector('.signup_user').classList.remove('error');
-      vm.$axios.get(API_URL+'/api/checkuser', {username: val})
+      vm.$axios.post(API_URL+'/api/checkuser', {username: val})
       .then( (res)=> {
         if (res.data.length === 1) {
           vm.usernamehasaccount = true;
@@ -243,7 +243,7 @@ export default {
         vm.issignup = false;
         console.log('sucsess');
         vm.input_signup.hide = CryptoJS.MD5(vm.input_signup.password).toString();
-        vm.$axios.get(API_URL+'/api/signup', vm.input_signup)
+        vm.$axios.post(API_URL+'/api/signup', vm.input_signup)
         .then( (res)=> {
           console.log(res);
           if (vm.$parent.events.length !== 0) {
