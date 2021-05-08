@@ -13,12 +13,12 @@ class CreateMembersTable extends Migration
      */
     public function up()
     {
-        // Schema::create('members', function (Blueprint $table) {
-        //     $table->increments('id');
-        //     $table->string('username');
-        //     $table->string('password');
-        //     $table->timestamps();
-        // });
+        Schema::create('members', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('username');
+            $table->string('password');
+            $table->timestamps();
+        });
     }
 
     /**

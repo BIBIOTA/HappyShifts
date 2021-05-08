@@ -13,10 +13,14 @@ class CreateShiftsTable extends Migration
      */
     public function up()
     {
-        // Schema::create('shifts', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->timestamps();
-        // });
+        Schema::create('shifts', function (Blueprint $table) {
+            $table->id();
+            $table->integer('member_id');
+            $table->string('shift');
+            $table->string('starttime');
+            $table->string('endtime');
+            $table->timestamps();
+        });
     }
 
     /**
