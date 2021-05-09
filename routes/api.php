@@ -29,10 +29,6 @@ Route::post('/signup', PostController::class . '@apiSignup');
 
 Route::get('/member', PostController::class . '@apiMember');
 
-Route::get('/session', PostController::class . '@apiSession');
-
-Route::delete('/session', PostController::class . '@apiClearSession');
-
 Route::get('/events', PostController::class . '@apiUploadEvent');
 
 Route::get('/getevents', PostController::class . '@apiGetEvent');

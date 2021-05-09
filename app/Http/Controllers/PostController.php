@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Models\Post;
 use App\Models\member;
 use App\Models\shift;
@@ -19,15 +20,15 @@ class PostController extends Controller
         if (isset($users)) {
             $id = $users->id;
             $user = $users->username;
-            if(!isset($_SESSION)){
-                session_start(); 
-            }
-            $_SESSION["MemberID"] = $id; //Table 'member'裡的ID欄位值
-            $_SESSION["MemberUser"] = $user; //Table 'member'裡的USERNAME欄位值
-            member::where('username', $username)->update(['updated_at' => $today]);
-            return response()->json($users, 200);    
+            $token =  Str::random(16);
+            member::where('username', $username)->update(['api_token' => $token,'updated_at' => $today]);
+            $data = [
+                'username' => $user,
+                'api_token' => $token,
+            ];
+            return response()->json($data, 200);
         }else{
-            return false;
+            return response()->json(false, 400);
         }
     }
 
@@ -36,24 +37,20 @@ class PostController extends Controller
         $user =  member::where('username', $email .'@google')->first();
         $date = date('Y-m-d H:i:s');
         if ($user === null) {
-            member::insert(['username' => $email.'@google', 'password' => uniqid(),'created_at' => $date, 'updated_at' => $date]);
+            $token =  Str::random(16);
+            member::insert(['username' => $email.'@google', 'password' => uniqid(), 'api_token' => $token ,'created_at' => $date, 'updated_at' => $date]);
             $user =  member::where('username', $email .'@google')->first();
-            if(!isset($_SESSION)){
-                session_start(); 
-            }
-            $_SESSION["MemberID"] = $user->id; //Table 'member'裡的ID欄位值
             $username = mb_split("@",$user->username);
-            $_SESSION["MemberUser"] = $username[0];
         }else{
-            if(!isset($_SESSION)){
-                session_start(); 
-            }
-            $_SESSION["MemberID"] = $user->id; //Table 'member'裡的ID欄位值
+            $token =  Str::random(16);
             $username = mb_split("@",$user->username);
-            $_SESSION["MemberUser"] = $username[0];
-            member::where('username', $email .'@google')->update(['updated_at' => $date]);
+            member::where('username', $email .'@google')->update(['api_token' => $token ,'updated_at' => $date]);
         }
-        return true;
+        $data = [
+            'username' => $username[0],
+            'api_token' => $token,
+        ];
+        return response()->json($data, 200);
     }
 
     function apiCheckuser (Request $request) {
@@ -63,44 +60,26 @@ class PostController extends Controller
     }
 
     function apiSignup(Request $request) {
+        $token =  Str::random(16);
+        $request->api_token = $token;
         $post = new member;
         $post->username = $request->input('username', '帳號');
         $post->password = $request->input('hide', '密碼');
+        $post->api_token = $request->api_token;
         $ok = $post->save();
-        $users = member::where('username', $post->username)->where('password',$post->password)->get();
-        $id = $users[0]->id;
-        $user = $users[0]->username;
-        if ( count($users) === 1 ) {
-            if(!isset($_SESSION)){
-                session_start(); 
-            }
-            $_SESSION["MemberID"] = $id; //Table 'member'裡的ID欄位值
-            $_SESSION["MemberUser"] = $user; //Table 'member'裡的USERNAME欄位值
-        };
-        return response()->json($users, 200);
+        $users = member::where('username', $post->username)->where('password',$post->password)->first();
+        if ($users) {
+            $user = $users->username;
+            $data = [
+                'username' => $user,
+                'api_token' => $token,
+            ];
+        }
+        return response()->json($data, 200);
     }
 
     function apiMember() {
         return response()->json(member::all(), 200);
-    }
-
-    function apiSession () {
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        $obj = [
-            'id' => isset($_SESSION["MemberID"]) ? $_SESSION["MemberID"] : null,
-            'user'  => isset($_SESSION["MemberUser"]) ? $_SESSION["MemberUser"] : null,
-        ];
-        return $obj;
-    }
-
-    function apiClearSession() {
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        session_unset();
-        session_destroy();
     }
 
     function apiUploadEvent (Request $request) {
