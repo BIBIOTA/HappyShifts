@@ -153,7 +153,7 @@ export default {
       let year = this.events[0].start.dateTime.split("-")[0];
       let month = this.events[0].start.dateTime.split("-")[1];
 
-      let data = {year: year, month: month , events : JSON.stringify(this.events)};
+      let data = {year: year, month: month , events : JSON.stringify(this.events), api_token: this.$Cookies.get('api_token')};
 
       this.$axios.get(API_URL+'/api/events', { params: data })
         .then( (res)=> {

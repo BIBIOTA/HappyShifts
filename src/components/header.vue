@@ -111,16 +111,15 @@ export default {
       vm.input_login.hide = CryptoJS.MD5(vm.input_login.password).toString();
       vm.$axios.post(API_URL+'/api/login', this.input_login)
       .then( (res)=> {
-        console.log(res.data);
-        if (res.data != false) {
+        if (res.status === 200) {
+          vm.$Cookies.set('api_token', res.data.api_token);
+          vm.$Cookies.set('user', res.data.username);
           window.location.reload()
-        }else{
-          document.querySelector('.signup_pass').classList.add('error');
-          vm.islogin = true;
         }
       })
-      .catch( (res)=> {
-        console.log(res);
+      .catch( ()=> {
+        document.querySelector('.signup_pass').classList.add('error');
+        vm.islogin = true;
       })
     },
     googlelogin (val) {
@@ -180,10 +179,12 @@ export default {
             vm.$axios.post(API_URL+'/api/googlelogin', email)
             .then( (res)=> {
               console.log(res);
-              if (res.data === 1 ){
+              if (res.status === 200 ){
                 if (vm.isgooglesignup === false && vm.$parent.events.length !== 0) {
                   vm.$parent.eventsToBackend();
                 }
+                vm.$Cookies.set('api_token', res.data.api_token);
+                vm.$Cookies.set('user', res.data.username);
                 window.setTimeout(window.location.reload(), 1000);
               }
             })
@@ -246,10 +247,14 @@ export default {
         vm.$axios.post(API_URL+'/api/signup', vm.input_signup)
         .then( (res)=> {
           console.log(res);
-          if (vm.$parent.events.length !== 0) {
-            this.$parent.eventsToBackend();
+          if (res.status === 200) {
+            if (vm.$parent.events.length !== 0) {
+              this.$parent.eventsToBackend();
+            }
+            vm.$Cookies.set('api_token', res.data.api_token);
+            vm.$Cookies.set('user', res.data.username);
+            window.setTimeout(window.location.reload(), 1000);
           }
-          window.setTimeout(window.location.reload(), 1000);
         })
         .catch( (res)=> {
           console.log(res);
@@ -263,14 +268,9 @@ export default {
       }
     },
     logout () {
-      this.$axios.delete(API_URL+'/api/session')
-      .then( (res)=> {
-        console.log(res);
-        window.location.reload()
-      })
-      .catch( (res)=> {
-        console.log(res);
-      })
+      this.$Cookies.remove('user');
+      this.$Cookies.remove('api_token');
+      window.location.reload();
     }
   },
   mounted () {
