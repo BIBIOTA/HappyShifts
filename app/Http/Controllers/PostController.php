@@ -87,14 +87,12 @@ class PostController extends Controller
         $month = $request->month;
         $events = $request->events;
         $today = date("Y-m-d H:i:s");
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        $data = shift::select('data')->where('member_id' , $_SESSION["MemberID"])->where('year' , $year)->where('month' , $month)->first();
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
+        $data = shift::select('data')->where('member_id' , $member->id)->where('year' , $year)->where('month' , $month)->first();
         if (isset($data)) {
-            shift::where('member_id' , $_SESSION["MemberID"])->where('year' , $year)->where('month' , $month)->update(['data' => $events]);
+            shift::where('member_id' , $member->id)->where('year' , $year)->where('month' , $month)->update(['data' => $events]);
         }else{
-            shift::insert(['member_id' => $_SESSION["MemberID"], 'year' => $year,'month' => $month, 'data' => $events,'created_at' => $today, 'updated_at' => $today]);
+            shift::insert(['member_id' => $member->id, 'year' => $year,'month' => $month, 'data' => $events,'created_at' => $today, 'updated_at' => $today]);
         }
         return true;
     }
@@ -102,10 +100,8 @@ class PostController extends Controller
     function apiGetEvent (Request $request) {
         $year = $request->year;
         $month = $request->month;
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        $data = shift::select('data')->where('member_id' , $_SESSION["MemberID"])->where('year' , $year)->where('month' , $month)->first();
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
+        $data = shift::select('data')->where('member_id' , $member->id)->where('year' , $year)->where('month' , $month)->first();
         if (isset($data)) {
             return $data;
         }else{
@@ -116,49 +112,41 @@ class PostController extends Controller
     function apiDeleteEvent (Request $request) {
         $year = $request->year;
         $month = $request->month;
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        $data = shift::select('data')->where('member_id' , $_SESSION["MemberID"])->where('year' , $year)->where('month' , $month)->delete();
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
+        $data = shift::select('data')->where('member_id' , $member->id)->where('year' , $year)->where('month' , $month)->delete();
         return 'ok';
     }
 
     function apiUploadShiftlist (Request $request) {
         $today = date("Y-m-d H:i:s");
-        $shiftlist = json_decode($request[0]);
+        $shiftlist = json_decode($request->data);
         $num = count($shiftlist)-1;
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
         for ($i = 0 ; $i <= $num ; $i++) {
             $name = $shiftlist[$i]->name;
             $starttime = $shiftlist[$i]->starttime;
             $endtime = $shiftlist[$i]->endtime;
-            $data = shiftlist::where('member_id' , $_SESSION["MemberID"])->where('shift' , $name)->first();
+            $data = shiftlist::where('member_id' , $member->id)->where('shift' , $name)->first();
             if (isset($data)) {
-                shiftlist::where('member_id' , $_SESSION["MemberID"])->where('shift' , $name)->update(['starttime' => $starttime,'endtime' => $endtime,'updated_at' => $today]);
+                shiftlist::where('member_id' , $member->id)->where('shift' , $name)->update(['starttime' => $starttime,'endtime' => $endtime,'updated_at' => $today]);
             }else{
-                shiftlist::insert(['member_id' => $_SESSION["MemberID"], 'shift' => $name,'starttime' => $starttime, 'endtime' => $endtime,'created_at' => $today, 'updated_at' => $today]);
+                shiftlist::insert(['member_id' => $member->id, 'shift' => $name,'starttime' => $starttime, 'endtime' => $endtime,'created_at' => $today, 'updated_at' => $today]);
             }
         }
-        $last = shiftlist::select('id','shift AS name','starttime','endtime')->where('member_id' , $_SESSION["MemberID"])->latest('id')->first();    
+        $last = shiftlist::select('id','shift AS name','starttime','endtime')->where('member_id' , $member->id)->latest('id')->first();    
         return response()->json($last,200);
     }
 
-    function apiGetShiftlist () {
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        $data = shiftlist::select('id','shift AS name','starttime','endtime')->where('member_id' , $_SESSION["MemberID"])->get();
+    function apiGetShiftlist (Request $request) {
+        $member = member::select('id')->where('api_token', $request[0])->first();
+        $data = shiftlist::select('id','shift AS name','starttime','endtime')->where('member_id' , $member->id)->get();
         return response()->json($data, 200);
     }
     
     function apiDeletesShiftlist (Request $request) {
-        $id = $request->id;
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        shiftlist::where('member_id' , $_SESSION["MemberID"])->where('id' , $id)->delete();
+        $id = $request->data;
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
+        shiftlist::where('member_id' , $member->id)->where('id' , $id)->delete();
         return 'ok';
     }
 
@@ -168,10 +156,8 @@ class PostController extends Controller
         $starttime = $request->starttime;
         $endtime = $request->endtime;
         $today = date("Y-m-d H:i:s");
-        if(!isset($_SESSION)){
-            session_start(); 
-        }
-        shiftlist::where('member_id' , $_SESSION["MemberID"])->where('id' , $id)->update(['shift' => $shift,'starttime' => $starttime,'endtime' => $endtime,'updated_at' => $today]);
+        $member = member::select('id')->where('api_token', $request->api_token)->first();
+        shiftlist::where('member_id' , $member->id)->where('id' , $id)->update(['shift' => $shift,'starttime' => $starttime,'endtime' => $endtime,'updated_at' => $today]);
         return 'ok';
     }
 

@@ -16,9 +16,9 @@ class CreateShiftsTable extends Migration
         Schema::create('shifts', function (Blueprint $table) {
             $table->id();
             $table->integer('member_id');
-            $table->string('shift');
-            $table->string('starttime');
-            $table->string('endtime');
+            $table->year('year');
+            $table->integer('month');
+            $table->longText('data');
             $table->timestamps();
         });
     }
