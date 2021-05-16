@@ -19,7 +19,7 @@
       <tbody>
         <cdays v-for="(day,index) in days" :key="index" :day="day" :shifts="shifts[index]" @update="updateindex"/>
           <div class="guide guide2" v-show="guide === 2">
-            <span class="arrow">🡅</span>
+            <span class="arrow"><i class="fas fa-arrow-up"></i></span>
             可以點擊選擇指定的日期哦 !
             <button class="btn" @click="iknow"><p>知道了</p></button>
           </div>
@@ -224,7 +224,7 @@ export default {
     },
     getevents () {
       var vm = this;
-      let data = {year : vm.year, month: vm.month};
+      let data = {year : vm.year, month: vm.month, api_token: this.$Cookies.get('api_token')};
       this.$axios.get(API_URL+'/api/getevents',{ params: data })
       .then( (res)=> {
         if (res.data != false) {
@@ -258,7 +258,7 @@ export default {
     },
     deleteshifts () {
       var vm = this;
-      let data = {year : vm.year, month: vm.month};
+      let data = {year : vm.year, month: vm.month, api_token: this.$Cookies.get('api_token')};
       this.$axios.get(API_URL+'/api/deleteevents',{ params: data })
       .then( (res)=> {
         console.log(res);

@@ -14,7 +14,7 @@
             <tbody id="tbody">
                 <tr v-for="(shift,index) in shifts" :key="index">
                     <div class="guide guide1" v-show="haslogin === false && guide === 1">
-                        <span class="arrow arrow_first">🡅</span>
+                        <span class="arrow arrow_first"><i class="fas fa-arrow-up"></i></span>
                         <br />
                         點擊班別，
                         <br />
@@ -163,10 +163,12 @@ export default {
             this.$emit('updateedit',false);
         },
         iknow () {
-            if (this.$props.guide === 1) {
+            if (this.$props.guide === 1 && this.haslogin === true) {
+                document.querySelector('.guide1').style.display="none";
+                this.$emit('updateguide',0);
+            } else {
                 document.querySelector('.guide1').style.display="none";
                 this.$emit('updateguide',2);
-                document.querySelector('#tbody').style.overflow = "auto";
             }
         },
         clear () {
@@ -201,7 +203,7 @@ export default {
         },
         uploadshifts () {
             var vm = this;
-            let data = JSON.stringify(vm.shifts);
+            let data = {data: JSON.stringify(vm.shifts), api_token: this.$Cookies.get('api_token')};
             this.$axios.get(API_URL+'/api/uploadshiftlist', { params: data})
             .then( (res)=> {
                 console.log(res.data.id);
@@ -250,12 +252,16 @@ export default {
             }
         },
         getshiftlist () {
-            this.$axios.get(API_URL+'/api/getshiftlist')
+            this.$axios.get(API_URL+'/api/getshiftlist', {params: this.$Cookies.get('api_token')})
             .then( (res)=> {
                 console.log(res.data);
                 if (res.data.length === 0) {
                     this.shifts = [{name: 'A', starttime: '00:00', endtime: '12:00'}];
                 }else{
+                    res.data.forEach(item => {
+                        item.starttime = item.starttime.substring(0,5);
+                        item.endtime = item.endtime.substring(0,5);
+                    });
                     this.shifts = res.data;
                 }
             })
@@ -264,7 +270,8 @@ export default {
             })
         },
         deleteshiftlist (index) {
-            this.$axios.get(API_URL+'/api/deleteshiftlist' , {params: this.shifts[index]})
+            const data = {data: this.shifts[index].id, api_token: this.$Cookies.get('api_token')};
+            this.$axios.get(API_URL+'/api/deleteshiftlist' , {params: data})
             .then( (res)=> {
                 console.log(res);
             })
@@ -274,6 +281,7 @@ export default {
         },
         updateshiftlist (index) {
             console.log(this.shifts[index]);
+            this.shifts[index].api_token = this.$Cookies.get('api_token');
             this.$axios.get(API_URL+'/api/updateshiftlist' , {params: this.shifts[index]})
             .then( (res)=> {
                 console.log(res);
@@ -281,7 +289,14 @@ export default {
             .catch( (res)=> {
                 console.log(res);
             })
-        }
+        },
+        getData() {
+            if (this.haslogin === true) {
+                this.getshiftlist();
+            }else{
+                this.shifts = [{name: 'A', starttime: '00:00', endtime: '12:00'}];
+            }
+        },
     },
     mounted() {
         var vm = this;
@@ -305,6 +320,7 @@ export default {
             }
         }
         vm.timearr = timearr;
+        this.getData();
     },
 }
 </script>
@@ -354,6 +370,7 @@ export default {
             }
             tbody {
                 height: 460px;
+                overflow: auto;
             }
             tr {
                 display: flex;
