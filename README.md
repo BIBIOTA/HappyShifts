@@ -1,24 +1,11 @@
-# frontend
+<h1>Happy Shifts 班表管理</h1>
 
-## Project setup
-```
-npm install
-```
+<br />
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+開發時間:2021/1~2021/2
 
-### Compiles and minifies for production
-```
-npm run build
-```
+<br />
 
-### Lints and fixes files
-```
-npm run lint
-```
+第三方登入、前後端分離CRUD練習Side-Project(Google、Google Calendar)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+<a href="https://happyshifts.herokuapp.com">https://happyshifts.herokuapp.com</a>
